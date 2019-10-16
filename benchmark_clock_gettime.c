@@ -9,6 +9,7 @@
 
 #define COMPUTE_PI_ERROR(x) (((x > M_PI) ? (x - M_PI) : (M_PI - x)) / M_PI)
 
+
 int main(int argc, char const *argv[])
 {
     struct timespec start = {0, 0};
@@ -18,7 +19,7 @@ int main(int argc, char const *argv[])
         return -1;
 
     int N = atoi(argv[1]);
-    int i, loop = 25;
+    int i, loop = 100;
 
 #if defined(BASELINE)
     // Baseline
@@ -184,5 +185,53 @@ int main(int argc, char const *argv[])
     printf("%lf\n", COMPUTE_PI_ERROR(compute_pi_euler_avx_unroll(N)));
 #endif
 
+#if defined(CHUD)
+    // Baseline
+    printf("%lf ", compute_pi_Chud(N));
+    clock_gettime(CLOCK_ID, &start);
+    for (i = 0; i < loop; i++) {
+        compute_pi_Chud(N);
+    }
+    clock_gettime(CLOCK_ID, &end);
+    printf("%lf ", (double) (end.tv_sec - start.tv_sec) +
+                       (end.tv_nsec - start.tv_nsec) / ONE_SEC);
+    printf("%lf ", COMPUTE_PI_ERROR(compute_pi_Chud(N)));
+
+    clock_gettime(CLOCK_ID, &start);
+    for (i = 0; i < 2; i++) {
+        compute_pi_Chud(N);
+    }
+    clock_gettime(CLOCK_ID, &end);
+    printf("%lf ", (double) (end.tv_sec - start.tv_sec) +
+                       (end.tv_nsec - start.tv_nsec) / ONE_SEC);
+    printf("%lf ", COMPUTE_PI_ERROR(compute_pi_Chud(N)));
+
+    clock_gettime(CLOCK_ID, &start);
+    for (i = 0; i < 2; i++) {
+        compute_pi_Chud(N);
+    }
+    clock_gettime(CLOCK_ID, &end);
+    printf("%lf ", (double) (end.tv_sec - start.tv_sec) +
+                       (end.tv_nsec - start.tv_nsec) / ONE_SEC);
+    printf("%lf ", COMPUTE_PI_ERROR(compute_pi_Chud(N)));
+
+    clock_gettime(CLOCK_ID, &start);
+    for (i = 0; i < 2; i++) {
+        compute_pi_Chud(N);
+    }
+    clock_gettime(CLOCK_ID, &end);
+    printf("%lf ", (double) (end.tv_sec - start.tv_sec) +
+                       (end.tv_nsec - start.tv_nsec) / ONE_SEC);
+    printf("%lf ", COMPUTE_PI_ERROR(compute_pi_Chud(N)));
+
+    clock_gettime(CLOCK_ID, &start);
+    for (i = 0; i < 2; i++) {
+        compute_pi_Chud(N);
+    }
+    clock_gettime(CLOCK_ID, &end);
+    printf("%lf ", (double) (end.tv_sec - start.tv_sec) +
+                       (end.tv_nsec - start.tv_nsec) / ONE_SEC);
+    printf("%lf\n", COMPUTE_PI_ERROR(compute_pi_Chud(N)));
+#endif
     return 0;
 }

@@ -2,8 +2,8 @@
 #include <immintrin.h>
 #include <math.h>
 #include <omp.h>
+#include <stdint.h>
 #include <stdio.h>
-
 double compute_pi_baseline(size_t N)
 {
     double pi = 0.0;
@@ -22,6 +22,16 @@ double compute_pi_openmp(size_t N, int threads)
     double x;
 #pragma omp parallel num_threads(threads)
     {
+        /**
+         * for : Causes the work done in a for loop inside a parallel region to
+         * be divided among threads. parallel : Specifies that code under a
+         * parallelized for loop should be executed like a sequential loop.
+         * num_threads : Sets the number of threads in a thread team.
+         * private : Sepcifies that each thread should have its own isntance of
+         * a variable reduction : Specifies that one or more variables that are
+         * private to each thread are the subject of a reduction operation at
+         * the end of the parallel region.
+         */
 #pragma omp for private(x) reduction(+ : pi)
         for (size_t i = 0; i < N; i++) {
             x = (double) i / N;
@@ -136,8 +146,8 @@ double compute_pi_leibniz_openmp(size_t N, int threads)
     double pi = 0.0;
 #pragma omp parallel for num_threads(threads) reduction(+ : pi)
     for (size_t i = 0; i < N; i++) {
-        double tmp = (i & 1) ? (-1) : 1;
-        pi += tmp / (2 * i + 1);
+        double tmp = (i & 1) ? -1 : 1;
+        pi += ((double) tmp) / (2 * i + 1);
     }
     return pi * 4.0;
 }
@@ -316,4 +326,36 @@ double compute_pi_euler_avx_unroll(size_t N)
           tmp2[3] + tmp3[0] + tmp3[1] + tmp3[2] + tmp3[3] + tmp4[0] + tmp4[1] +
           tmp4[2] + tmp4[3];
     return sqrt(pi);
+}
+
+static double A = 13591409.0f, B = 545140134.0f, C = 640320.0f;
+
+pqt_t compute_pi_Chud_aux(size_t n1, size_t n2)
+{
+    double an = pow(-1, n2 % 2) * (13591409.0f + 545140134.0f * n2);
+    double pn = (2 * n2 - 1) * (6 * n2 - 5) * (6 * n2 - 1);
+    double qn = n2 * n2 * n2 * 640320.0f * 640320.0f * 640320.0f / 24.0f;
+    pqt_t rst = {.p = pn, .q = qn, .t = an * pn};
+    if (n1 + 1 == n2)
+        return rst;
+    else {
+        size_t m = (n1 + n2) / 2;
+        pqt_t t1 = compute_pi_Chud_aux(n1, m);
+        pqt_t t2 = compute_pi_Chud_aux(m, n2);
+        rst.p = t1.p * t2.p;
+        rst.q = t1.q * t2.q;
+        rst.t = t1.t * t2.q + t1.p * t2.t;
+        return rst;
+    }
+}
+
+pqt_t compute_pi_Chud_aux_unroll(size_t n1, size_t n2) {}
+
+
+double compute_pi_Chud(size_t N)
+{
+    pqt_t rst = compute_pi_Chud_aux(0, N);
+    printf("%lf %lf %lf", rst.p, rst.q, rst.t);
+    return rst.q / (12 * rst.t + 12 * 13591409.0f * rst.q) *
+           pow(640320.0f, 1.5f);
 }

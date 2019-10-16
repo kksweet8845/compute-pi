@@ -11,7 +11,7 @@ EXECUTABLE = \
 
 GIT_HOOKS := .git/hooks/applied
 
-METHOD ?= BASELINE
+METHOD ?= CHUD
 
 $(GIT_HOOKS):
 	@scripts/install-git-hooks
